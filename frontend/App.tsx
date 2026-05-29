@@ -12,7 +12,7 @@ import { View, ActivityIndicator } from 'react-native';
 import { colors } from './src/theme/colors';
 
 function RootNavigator(): JSX.Element {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, needsOnboarding } = useAuth();
 
   if (isLoading) {
     return (
@@ -29,7 +29,11 @@ function RootNavigator(): JSX.Element {
     );
   }
 
-  return isAuthenticated ? <MainNavigator /> : <AuthNavigator />;
+  if (isAuthenticated) {
+    return needsOnboarding ? <AuthNavigator initialRouteName="Onboarding" /> : <MainNavigator />;
+  }
+
+  return <AuthNavigator initialRouteName="Splash" />;
 }
 
 export default function App(): JSX.Element {

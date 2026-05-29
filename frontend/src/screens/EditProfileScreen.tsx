@@ -17,11 +17,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/client';
+import { uploadProfilePhoto, uploadAdditionalPhotos } from '../api/fileUpload';
 import { UserProfile } from '../types';
 
 const { width } = Dimensions.get('window');
@@ -51,6 +53,42 @@ const EditProfileScreen = (): JSX.Element => {
   const successOpacity = useRef(new Animated.Value(0)).current;
   const saveButtonScale = useRef(new Animated.Value(1)).current;
 
+  // Sync state when screen is focused - fetch latest data from server
+  useFocusEffect(
+    useCallback(() => {
+      const refreshUserData = async () => {
+        try {
+          const response = await apiClient.get('/api/users/me');
+          const freshUser = response.data;
+          
+          setName(freshUser.name || '');
+          setAge(freshUser.age?.toString() || '');
+          setCareer(freshUser.career || '');
+          setSemester(freshUser.semester?.toString() || '');
+          setBio(freshUser.bio || '');
+          setInterests(freshUser.interests || []);
+          setPhotos(freshUser.photos || []);
+          setProfilePhotoUri(freshUser.profile_photo || null);
+        } catch (err) {
+          console.error('Error refreshing user data:', err);
+          // Fallback to context user if API fails
+          if (user) {
+            setName(user.name || '');
+            setAge(user.age?.toString() || '');
+            setCareer(user.career || '');
+            setSemester(user.semester?.toString() || '');
+            setBio(user.bio || '');
+            setInterests(user.interests || []);
+            setPhotos(user.photos || []);
+            setProfilePhotoUri(user.profile_photo || null);
+          }
+        }
+      };
+      
+      refreshUserData();
+    }, [user])
+  );
+
   const showSuccess = () => {
     setSuccessVisible(true);
     Animated.sequence([
@@ -77,25 +115,25 @@ const EditProfileScreen = (): JSX.Element => {
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0];
       setPhotoUploading(true);
+
+      let uploaded = false;
       try {
-        const formData = new FormData();
-        formData.append('photo', {
-          uri: asset.uri,
-          name: 'profile.jpg',
-          type: 'image/jpeg',
-        } as any);
-
-        const res = await apiClient.post('/api/users/me/photo', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-
-        setProfilePhotoUri(asset.uri);
-        if (res.data?.user) updateUser(res.data.user);
-      } catch {
-        Alert.alert('Error', 'No se pudo subir la foto de perfil.');
-      } finally {
-        setPhotoUploading(false);
+        const res = await uploadProfilePhoto(
+          asset.uri,
+          asset.fileName || 'profile.jpg',
+          asset.mimeType || 'image/jpeg'
+        );
+        const updatedUser: UserProfile = res;
+        setProfilePhotoUri(updatedUser.profile_photo || asset.uri);
+        updateUser(updatedUser);
+        uploaded = true;
+      } catch (error: any) {
+        console.error('Error uploading profile photo:', error);
+        Alert.alert('Error', `No se pudo subir la foto de perfil. ${error.message}`);
       }
+
+      if (!uploaded) return;
+      setPhotoUploading(false);
     }
   };
 
@@ -116,24 +154,24 @@ const EditProfileScreen = (): JSX.Element => {
 
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0];
+      const tempId = `temp_${Date.now()}`;
+      const tempPhoto = { id: tempId, photo_url: asset.uri, order_index: photos.length };
+      setPhotos(prev => [...prev, tempPhoto]);
       setPhotoUploading(true);
       try {
-        const formData = new FormData();
-        formData.append('photo', {
-          uri: asset.uri,
-          name: `photo_${Date.now()}.jpg`,
-          type: 'image/jpeg',
-        } as any);
+        const res = await uploadAdditionalPhotos(
+          asset.uri,
+          asset.fileName || `photo_${Date.now()}.jpg`,
+          asset.mimeType || 'image/jpeg'
+        );
 
-        const res = await apiClient.post('/api/users/me/photos', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-
-        if (res.data?.photo) {
-          setPhotos(prev => [...prev, res.data.photo]);
+        if (Array.isArray(res?.photos)) {
+          setPhotos(res.photos);
         }
-      } catch {
-        Alert.alert('Error', 'No se pudo subir la foto.');
+      } catch (error: any) {
+        console.error('Error uploading photo:', error);
+        setPhotos(prev => prev.filter(p => p.id !== tempId));
+        Alert.alert('Error', `No se pudo subir la foto. ${error.message}`);
       } finally {
         setPhotoUploading(false);
       }
@@ -184,7 +222,7 @@ const EditProfileScreen = (): JSX.Element => {
     setSaving(true);
     try {
       // Save main profile
-      const res = await apiClient.put('/api/users/me', {
+      await apiClient.put('/api/users/me', {
         name: name.trim(),
         age: age ? parseInt(age, 10) : null,
         career: career.trim() || null,
@@ -195,10 +233,9 @@ const EditProfileScreen = (): JSX.Element => {
       // Save interests
       await apiClient.put('/api/users/me/interests', { interests });
 
-      const updatedUser: UserProfile = res.data?.user || res.data;
-      updatedUser.interests = interests;
-      updatedUser.photos = photos;
-      updatedUser.profile_photo = profilePhotoUri;
+      // Fetch the complete updated profile from the server
+      const response = await apiClient.get('/api/users/me');
+      const updatedUser: UserProfile = response.data;
       updateUser(updatedUser);
 
       showSuccess();

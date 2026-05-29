@@ -97,7 +97,7 @@ function setupChatSocket(io) {
     });
 
     // ── send_message ──────────────────────────────────────────────────────────
-    socket.on('send_message', ({ conversationId, content, type = 'text' }) => {
+    socket.on('send_message', ({ conversationId, content, type = 'text', tempId }) => {
       if (!conversationId || !content || typeof content !== 'string' || content.trim() === '') {
         socket.emit('error', { message: 'Datos de mensaje inválidos' });
         return;
@@ -132,10 +132,19 @@ function setupChatSocket(io) {
       const message = db.prepare('SELECT * FROM messages WHERE id = ?').get(msgId);
       const sender = db.prepare('SELECT id, name, profile_photo FROM users WHERE id = ?').get(userId);
 
-      io.to(`conv_${conversationId}`).emit('new_message', {
-        message,
-        sender,
-      });
+      // ✅ 1. Enviar confirmación al remitente con tempId -> messageId mapping
+      if (tempId) {
+        socket.emit('message_sent', {
+          tempId,
+          messageId: msgId,
+          success: true,
+        });
+        console.log(`[Socket] message_sent confirmación: ${tempId} -> ${msgId}`);
+      }
+
+      // ✅ 2. Broadcast del nuevo mensaje a todos en la sala
+      io.to(`conv_${conversationId}`).emit('new_message', message);
+      console.log(`[Socket] new_message broadcast a conv_${conversationId}: ${msgId}`);
     });
 
     // ── typing ────────────────────────────────────────────────────────────────

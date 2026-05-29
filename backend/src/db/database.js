@@ -52,6 +52,22 @@ class SQLiteWrapper {
   }
 
   /**
+   * Returns a function that executes multiple operations atomically.
+   * Mimics better-sqlite3's db.transaction() for compatibility.
+   */
+  transaction(fn) {
+    const self = this;
+    return (...args) => {
+      try {
+        fn.apply(this, args);
+        self._save();
+      } catch (err) {
+        throw err;
+      }
+    };
+  }
+
+  /**
    * Returns a statement-like object with run / get / all methods,
    * mirroring better-sqlite3's db.prepare() API.
    */

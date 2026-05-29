@@ -21,6 +21,7 @@ import { useNavigation } from '@react-navigation/native';
 import { colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/client';
+import { uploadProfilePhoto, uploadAdditionalPhotos } from '../api/fileUpload';
 import { AuthStackParamList } from '../navigation/AuthNavigator';
 
 type OnboardingNavProp = NativeStackNavigationProp<AuthStackParamList, 'Onboarding'>;
@@ -50,6 +51,11 @@ const OnboardingScreen = (): JSX.Element => {
 
   // Step 3: Bio
   const [bio, setBio] = useState('');
+
+  // Step 3b: Age and Career (from registration)
+  const [age, setAge] = useState(user?.age?.toString() || '');
+  const [career, setCareer] = useState(user?.career || '');
+  const [semester, setSemester] = useState(user?.semester?.toString() || '');
 
   // Step 4: Interests
   const [interests, setInterests] = useState<string[]>([]);
@@ -95,20 +101,16 @@ const OnboardingScreen = (): JSX.Element => {
       setProfilePhotoUri(asset.uri);
       setIsLoading(true);
       try {
-        const formData = new FormData();
-        formData.append('photo', {
-          uri: asset.uri,
-          name: 'profile.jpg',
-          type: 'image/jpeg',
-        } as any);
-
-        const res = await apiClient.post('/api/users/me/photo', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        const res = await uploadProfilePhoto(
+          asset.uri,
+          asset.fileName || 'profile.jpg',
+          asset.mimeType || 'image/jpeg'
+        );
         setProfilePhotoUploaded(true);
-        if (res.data?.user) updateUser(res.data.user);
-      } catch {
-        Alert.alert('Error', 'No se pudo subir la foto. Intenta de nuevo.');
+        if (res) updateUser(res);
+      } catch (error: any) {
+        console.error('Upload error:', error);
+        Alert.alert('Error', `No se pudo subir la foto. ${error.message}`);
         setProfilePhotoUri(null);
       } finally {
         setIsLoading(false);
@@ -134,24 +136,24 @@ const OnboardingScreen = (): JSX.Element => {
 
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0];
+      const tempId = `temp_${Date.now()}`;
+      const tempPhoto = { id: tempId, photo_url: asset.uri, order_index: additionalPhotos.length };
+      setAdditionalPhotos(prev => [...prev, tempPhoto]);
       setIsLoading(true);
       try {
-        const formData = new FormData();
-        formData.append('photo', {
-          uri: asset.uri,
-          name: `photo_${Date.now()}.jpg`,
-          type: 'image/jpeg',
-        } as any);
+        const res = await uploadAdditionalPhotos(
+          asset.uri,
+          asset.fileName || `photo_${Date.now()}.jpg`,
+          asset.mimeType || 'image/jpeg'
+        );
 
-        const res = await apiClient.post('/api/users/me/photos', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-
-        if (res.data?.photo) {
-          setAdditionalPhotos(prev => [...prev, res.data.photo]);
+        if (Array.isArray(res?.photos)) {
+          setAdditionalPhotos(res.photos);
         }
-      } catch {
-        Alert.alert('Error', 'No se pudo subir la foto.');
+      } catch (error: any) {
+        console.error('Photo upload error:', error);
+        setAdditionalPhotos(prev => prev.filter(p => p.id !== tempId));
+        Alert.alert('Error', `No se pudo subir la foto. ${error.message}`);
       } finally {
         setIsLoading(false);
       }
@@ -178,7 +180,12 @@ const OnboardingScreen = (): JSX.Element => {
 
   const saveBio = async () => {
     try {
-      await apiClient.put('/api/users/me', { bio });
+      await apiClient.put('/api/users/me', {
+        bio,
+        age: age ? parseInt(age, 10) : null,
+        career: career.trim() || null,
+        semester: semester ? parseInt(semester, 10) : null,
+      });
     } catch {
       // Continue anyway
     }
@@ -189,6 +196,17 @@ const OnboardingScreen = (): JSX.Element => {
       await apiClient.put('/api/users/me/interests', { interests });
     } catch {
       // Continue anyway
+    }
+  };
+
+  const refreshCurrentUser = async () => {
+    try {
+      const response = await apiClient.get('/api/users/me');
+      if (response.data) {
+        updateUser(response.data);
+      }
+    } catch {
+      // Keep local state if refresh fails
     }
   };
 
@@ -205,10 +223,17 @@ const OnboardingScreen = (): JSX.Element => {
   };
 
   const handleNext = async () => {
-    if (step === 2) await saveBio();
+    if (step === 2) {
+      if (!semester.trim()) {
+        Alert.alert('Campo requerido', 'Ingresa tu semestre para completar el perfil.');
+        return;
+      }
+
+      await saveBio();
+    }
     if (step === 3) {
       await saveInterests();
-      navigation.replace('Login'); // Auth context will route to Main
+      await refreshCurrentUser();
       return;
     }
     animateToNextStep(step + 1);
@@ -216,7 +241,7 @@ const OnboardingScreen = (): JSX.Element => {
 
   const handleSkip = () => {
     if (step === 3) {
-      navigation.replace('Login');
+      refreshCurrentUser();
       return;
     }
     animateToNextStep(step + 1);
@@ -366,6 +391,45 @@ const OnboardingScreen = (): JSX.Element => {
           <Text style={bio.length > 270 ? { color: colors.warning } : {}}>{bio.length}</Text>
           /300
         </Text>
+      </View>
+
+      {/* Age and Career Fields */}
+      <View style={styles.fieldGroup}>
+        <Text style={styles.fieldLabel}>Edad (opcional)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Ej: 20"
+          placeholderTextColor={colors.textMuted}
+          value={age}
+          onChangeText={(v) => setAge(v.replace(/[^0-9]/g, ''))}
+          keyboardType="numeric"
+          maxLength={2}
+        />
+      </View>
+
+      <View style={styles.fieldGroup}>
+        <Text style={styles.fieldLabel}>Carrera (opcional)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Ej: Ingeniería de Sistemas"
+          placeholderTextColor={colors.textMuted}
+          value={career}
+          onChangeText={setCareer}
+          autoCapitalize="words"
+        />
+      </View>
+
+      <View style={styles.fieldGroup}>
+        <Text style={styles.fieldLabel}>Semestre</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Ej: 4"
+          placeholderTextColor={colors.textMuted}
+          value={semester}
+          onChangeText={(v) => setSemester(v.replace(/[^0-9]/g, ''))}
+          keyboardType="numeric"
+          maxLength={2}
+        />
       </View>
 
       <View style={styles.buttonRow}>
@@ -739,6 +803,25 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 14,
     fontStyle: 'italic',
+  },
+  fieldGroup: {
+    marginBottom: 16,
+  },
+  fieldLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  input: {
+    height: 48,
+    backgroundColor: colors.inputBg,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    color: colors.text,
+    fontSize: 15,
   },
 });
 

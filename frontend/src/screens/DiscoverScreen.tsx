@@ -92,7 +92,12 @@ const DiscoverScreen = (): JSX.Element => {
     try {
       const res = await apiClient.post(`/api/likes/${target.id}`);
       if (res.data?.isMatch) {
-        setMatchedUser(target);
+        try {
+          const profileRes = await apiClient.get(`/api/users/${target.id}`);
+          setMatchedUser(profileRes.data || target);
+        } catch {
+          setMatchedUser(target);
+        }
         setShowMatchModal(true);
       }
     } catch {

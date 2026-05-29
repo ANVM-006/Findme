@@ -45,7 +45,7 @@ function safeUser(user) {
 
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, age, career } = req.body;
 
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return res.status(400).json({ error: 'El nombre es requerido' });
@@ -74,9 +74,13 @@ router.post('/register', async (req, res) => {
     const password_hash = await bcrypt.hash(password, 12);
     const userId = uuidv4();
 
+    // Insert with age and career if provided
+    const ageVal = age ? Number(age) : null;
+    const careerVal = career && typeof career === 'string' ? career.trim() : null;
+
     db.prepare(
-      `INSERT INTO users (id, email, password_hash, name) VALUES (?, ?, ?, ?)`
-    ).run(userId, email.toLowerCase(), password_hash, name.trim());
+      `INSERT INTO users (id, email, password_hash, name, age, career) VALUES (?, ?, ?, ?, ?, ?)`
+    ).run(userId, email.toLowerCase(), password_hash, name.trim(), ageVal, careerVal);
 
     const { accessToken, refreshToken } = generateTokens(userId);
     storeRefreshToken(db, userId, refreshToken);

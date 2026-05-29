@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { colors } from '../theme/colors';
 import apiClient from '../api/client';
 import { getSocket } from '../api/socket';
@@ -58,36 +58,50 @@ const MessagesScreen = (): JSX.Element => {
     }
   }, []);
 
-  useEffect(() => {
-    fetchConversations();
+  useFocusEffect(
+    useCallback(() => {
+      console.log('[MessagesScreen] 👁️ PANTALLA GANÓ FOCUS - recargando conversaciones');
+      setLoading(true);
+      fetchConversations();
 
-    const socket = socketRef.current;
-    if (socket) {
-      const handleNewMessage = (message: Message) => {
-        setConversations(prev =>
-          prev.map(conv =>
-            conv.id === message.conversation_id
-              ? {
-                  ...conv,
-                  last_message: message,
-                  last_message_at: message.created_at,
-                  unread_count: conv.unread_count + 1,
-                }
-              : conv
-          ).sort((a, b) => {
-            const aTime = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
-            const bTime = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
-            return bTime - aTime;
-          })
-        );
-      };
+      const socket = socketRef.current;
+      if (socket) {
+        const handleNewMessage = (data: any) => {
+          // Backend envía el mensaje directamente, pero mantener compatibilidad si viene como {message, sender}
+          const message: Message = data.message || data;
+          if (!message || !message.conversation_id) {
+            console.warn('[MessagesScreen] Mensaje inválido recibido:', data);
+            return;
+          }
 
-      socket.on('new_message', handleNewMessage);
-      return () => {
-        socket.off('new_message', handleNewMessage);
-      };
-    }
-  }, []);
+          console.log('[MessagesScreen] Nuevo mensaje recibido:', message.id, 'para conversación:', message.conversation_id);
+
+          setConversations(prev =>
+            prev.map(conv =>
+              conv.id === message.conversation_id
+                ? {
+                    ...conv,
+                    last_message: message,
+                    last_message_at: message.created_at,
+                    unread_count: conv.unread_count + 1,
+                  }
+                : conv
+            ).sort((a, b) => {
+              const aTime = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
+              const bTime = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
+              return bTime - aTime;
+            })
+          );
+        };
+
+        socket.on('new_message', handleNewMessage);
+        return () => {
+          socket.off('new_message', handleNewMessage);
+          console.log('[MessagesScreen] 👁️ PANTALLA PERDIÓ FOCUS - Cleanup ejecutado');
+        };
+      }
+    }, [fetchConversations])
+  );
 
   useEffect(() => {
     if (searchQuery.trim() === '') {

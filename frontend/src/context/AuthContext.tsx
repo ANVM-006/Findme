@@ -34,7 +34,14 @@ interface AuthContextValue extends AuthState {
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (updatedUser: UserProfile) => void;
+  needsOnboarding: boolean;
 }
+
+const hasCompletedProfile = (user: UserProfile | null): boolean => {
+  if (!user) return false;
+
+  return Boolean(user.profile_photo && user.semester !== null && user.semester !== undefined);
+};
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -151,6 +158,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
     setState(prev => ({ ...prev, user: updatedUser }));
   };
 
+  const needsOnboarding = state.isAuthenticated && !hasCompletedProfile(state.user);
+
   return (
     <AuthContext.Provider
       value={{
@@ -159,6 +168,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
         register,
         logout,
         updateUser,
+        needsOnboarding,
       }}
     >
       {children}

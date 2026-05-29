@@ -64,7 +64,12 @@ const LikesScreen = (): JSX.Element => {
     try {
       const res = await apiClient.post(`/api/likes/${targetUser.id}`);
       if (res.data?.isMatch) {
-        setMatchedUser(targetUser);
+        try {
+          const profileRes = await apiClient.get(`/api/users/${targetUser.id}`);
+          setMatchedUser(profileRes.data || targetUser);
+        } catch {
+          setMatchedUser(targetUser);
+        }
         setShowMatchModal(true);
         // Move from received to matches
         setReceivedLikes(prev => prev.filter(u => u.id !== targetUser.id));
@@ -255,6 +260,7 @@ const LikesScreen = (): JSX.Element => {
         </View>
       ) : activeTab === 'received' ? (
         <FlatList
+          key={`received-${receivedLikes.length}`}
           data={receivedLikes}
           renderItem={renderReceivedItem}
           keyExtractor={item => item.id}
@@ -282,6 +288,7 @@ const LikesScreen = (): JSX.Element => {
         />
       ) : (
         <FlatList
+          key={`matches-${matches.length}`}
           data={matches}
           renderItem={renderMatchItem}
           keyExtractor={item => item.id}

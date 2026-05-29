@@ -18,7 +18,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
-import { AuthStackParamList } from '../navigation/AuthNavigator';
+import { AuthStackParamList, useAuthNavigatorControls } from '../navigation/AuthNavigator';
 
 type RegisterNavProp = NativeStackNavigationProp<AuthStackParamList, 'Register'>;
 
@@ -87,6 +87,7 @@ const InputField = ({
 const RegisterScreen = (): JSX.Element => {
   const navigation = useNavigation<RegisterNavProp>();
   const { register } = useAuth();
+  const { resetTo } = useAuthNavigatorControls();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -167,7 +168,11 @@ const RegisterScreen = (): JSX.Element => {
         career: career.trim() || undefined,
         age: age ? parseInt(age, 10) : undefined,
       });
-      navigation.replace('Onboarding');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Onboarding' }],
+      });
+      resetTo('Onboarding');
     } catch (err: any) {
       console.log('Registration error:', err);
       const msg =

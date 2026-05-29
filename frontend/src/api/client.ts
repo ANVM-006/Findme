@@ -15,10 +15,6 @@ export const setAuthEventCallback = (cb: AuthEventCallback): void => {
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_URL,
   timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-    'bypass-tunnel-reminder': 'true', // Bypass localtunnel landing page warning
-  },
 });
 
 // Request interceptor: attach access token to every request
@@ -29,8 +25,19 @@ apiClient.interceptors.request.use(
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
       }
-    } catch {
-      // If SecureStore fails, proceed without token
+      
+      config.headers['bypass-tunnel-reminder'] = 'true';
+      
+      // For FormData, don't set Content-Type - let axios handle it
+      if (config.data instanceof FormData) {
+        // Remove any existing Content-Type header to allow axios to set multipart/form-data
+        delete config.headers['Content-Type'];
+      } else if (config.data && !config.headers['Content-Type']) {
+        // Only set Content-Type for JSON requests
+        config.headers['Content-Type'] = 'application/json';
+      }
+    } catch (err) {
+      console.error('Request interceptor error:', err);
     }
     return config;
   },

@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/client';
@@ -120,7 +120,7 @@ const ChatScreen = (): JSX.Element => {
       if (reset) {
         setMessages(data);
       } else {
-        setMessages(prev => [...prev, ...data]);
+        setMessages(prev => [...data, ...prev]);
       }
       setHasMore(data.length === 30);
     } catch {
@@ -130,46 +130,99 @@ const ChatScreen = (): JSX.Element => {
     }
   }, [conversationId]);
 
-  useEffect(() => {
-    fetchMessages(1, true);
+  useFocusEffect(
+    useCallback(() => {
+      console.log('[ChatScreen] 👁️ PANTALLA GANÓ FOCUS - recargando mensajes:', conversationId);
+      setLoading(true);
+      fetchMessages(1, true);
 
-    const socket = socketRef.current;
-    if (socket) {
-      socket.emit('join_conversation', { conversationId });
+      const socket = socketRef.current;
+      if (socket) {
+        // ✅ REGISTRAR LISTENERS PRIMERO, antes de join_conversation
+        const handleNewMessage = (data: any) => {
+          // Backend envía {message, sender}, extraer el mensaje
+          const msg: Message = data.message || data;
+          if (msg && msg.conversation_id === conversationId) {
+            // Deduplicación: no agregar si ya existe
+            setMessages(prev => {
+              const exists = prev.some(m => m.id === msg.id);
+              if (exists) {
+                console.log('[ChatScreen] Mensaje duplicado, ignorando:', msg.id);
+                return prev;
+              }
+              console.log('[ChatScreen] Nuevo mensaje recibido:', msg.id);
+              return [...prev, msg];
+            });
+            // Scroll to bottom
+            setTimeout(() => {
+              flatListRef.current?.scrollToEnd({ animated: true });
+            }, 100);
+            // Mark as read
+            socket.emit('mark_read', { conversationId });
+          }
+        };
 
-      socket.on('new_message', (msg: Message) => {
-        if (msg.conversation_id === conversationId) {
-          setMessages(prev => [msg, ...prev]);
-          // Mark as read
-          socket.emit('mark_read', { conversationId });
-        }
-      });
+        const handleUserTyping = (data: { userId: string }) => {
+          if (data.userId === otherUser.id) {
+            setIsTyping(true);
+            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+            typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 3000);
+          }
+        };
 
-      socket.on('user_typing', (data: { userId: string }) => {
-        if (data.userId === otherUser.id) {
-          setIsTyping(true);
+        const handleMessagesRead = (data: { conversationId: string }) => {
+          if (data.conversationId === conversationId) {
+            setMessages(prev =>
+              prev.map(m => (m.sender_id === user?.id ? { ...m, is_read: 1 } : m))
+            );
+          }
+        };
+
+        const handleMessageSent = (data: { tempId?: string; messageId: string }) => {
+          // Confirmación del servidor: reemplazar tempId con UUID real
+          if (data.tempId && data.messageId) {
+            console.log('[ChatScreen] Confirmación recibida, reemplazando:', data.tempId, '->', data.messageId);
+            setMessages(prev =>
+              prev.map(m =>
+                m.id === data.tempId ? { ...m, id: data.messageId } : m
+              )
+            );
+          }
+        };
+
+        // Registrar los listeners PRIMERO
+        socket.on('new_message', handleNewMessage);
+        socket.on('user_typing', handleUserTyping);
+        socket.on('messages_read', handleMessagesRead);
+        socket.on('message_sent', handleMessageSent);
+
+        console.log('[ChatScreen] ✅ Listeners registrados para conversación:', conversationId);
+
+        // Ahora emitir join_conversation DESPUÉS de registrar los listeners
+        socket.emit('join_conversation', { conversationId });
+        console.log('[ChatScreen] ✅ join_conversation emitido:', conversationId);
+
+        return () => {
+          socket.emit('leave_conversation', { conversationId });
+          socket.off('new_message', handleNewMessage);
+          socket.off('user_typing', handleUserTyping);
+          socket.off('messages_read', handleMessagesRead);
+          socket.off('message_sent', handleMessageSent);
           if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-          typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 3000);
-        }
-      });
+          console.log('[ChatScreen] 👁️ PANTALLA PERDIÓ FOCUS - Cleanup ejecutado');
+        };
+      }
+    }, [conversationId])
+  );
 
-      socket.on('messages_read', (data: { conversationId: string }) => {
-        if (data.conversationId === conversationId) {
-          setMessages(prev =>
-            prev.map(m => (m.sender_id === user?.id ? { ...m, is_read: 1 } : m))
-          );
-        }
-      });
-
-      return () => {
-        socket.emit('leave_conversation', { conversationId });
-        socket.off('new_message');
-        socket.off('user_typing');
-        socket.off('messages_read');
-        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      };
+  // Scroll to bottom when messages finish loading
+  useEffect(() => {
+    if (!loading && messages.length > 0) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: false });
+      }, 50);
     }
-  }, [conversationId]);
+  }, [loading]);
 
   const handleInputChange = (text: string) => {
     setInputText(text);
@@ -196,12 +249,29 @@ const ChatScreen = (): JSX.Element => {
       is_read: 0,
       created_at: new Date().toISOString(),
     };
-    setMessages(prev => [optimisticMsg, ...prev]);
+    setMessages(prev => [...prev, optimisticMsg]);
+
+    // Scroll to bottom
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }, 100);
 
     try {
       const socket = socketRef.current;
       if (socket) {
-        socket.emit('send_message', { conversationId, content, msgType: 'text' });
+        // Incluir tempId en el emit para que el backend pueda confirmarlo
+        socket.emit('send_message', { conversationId, content, msgType: 'text', tempId }, (ack: any) => {
+          // Callback de confirmación del servidor
+          if (ack?.success && ack?.messageId) {
+            console.log('[ChatScreen] Mensaje confirmado por servidor:', ack.messageId);
+            // Reemplazar tempId con UUID real
+            setMessages(prev =>
+              prev.map(m =>
+                m.id === tempId ? { ...m, id: ack.messageId } : m
+              )
+            );
+          }
+        });
       } else {
         // Fallback to HTTP
         await apiClient.post(`/api/messages/conversations/${conversationId}/messages`, {
@@ -209,7 +279,8 @@ const ChatScreen = (): JSX.Element => {
           msgType: 'text',
         });
       }
-    } catch {
+    } catch (error) {
+      console.error('[ChatScreen] Error enviando mensaje:', error);
       // Remove optimistic message on failure
       setMessages(prev => prev.filter(m => m.id !== tempId));
     } finally {
@@ -316,13 +387,13 @@ const ChatScreen = (): JSX.Element => {
             data={messages}
             renderItem={renderMessage}
             keyExtractor={item => item.id}
-            inverted
             contentContainerStyle={styles.messageList}
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.3}
             removeClippedSubviews
             maxToRenderPerBatch={20}
-            ListHeaderComponent={isTyping ? <TypingDots /> : null}
+            ListFooterComponent={isTyping ? <TypingDots /> : null}
+            scrollEnabled={true}
           />
         )}
 
