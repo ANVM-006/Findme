@@ -1,166 +1,458 @@
-<<<<<<< HEAD
 # 🔍 FINDME — Red Social Universitaria FESC
 
-App mobile estilo Tinder para estudiantes de la Universidad FESC.  
-Stack: React Native (Expo) + Node.js + Socket.io + SQLite + JWT
+App móvil estilo Tinder para estudiantes de la Universidad FESC, diseñada para que puedan conocerse, hacer conexiones significativas y comunicarse en tiempo real.
+
+**Stack:** React Native (Expo) + Node.js + Socket.io + SQLite + JWT
 
 ---
 
-## 📁 Estructura del Proyecto
+## 👥 Integrantes del Equipo
 
-```
-findme/
-├── backend/     ← API REST + WebSockets + Base de datos
-└── frontend/    ← App móvil React Native (Expo)
-```
+| Nombre Completo | Código Estudiante |
+|---|---|
+| [Nombre 1] | [Código] |
+| [Nombre 2] | [Código] |
+| [Nombre 3] | [Código] |
+| [Nombre 4] | [Código] |
 
 ---
 
-## 🚀 Cómo Correr Localmente
+## 🛠️ Tecnologías Utilizadas
 
-### 1. Backend
+### Frontend (App Móvil)
+- **Framework:** React Native (Expo)
+- **Lenguaje:** TypeScript
+- **Versión Node.js:** 18.x o superior
+- **Dependencias principales:**
+  - `expo` v50+
+  - `react-native` v0.73+
+  - `@react-navigation/native` v6+
+  - `axios` (HTTP client)
+  - `socket.io-client` (WebSockets en tiempo real)
+  - `react-native-gesture-handler` (Animaciones y gestos)
+
+### Backend
+- **Framework:** Node.js + Express.js
+- **Lenguaje:** JavaScript
+- **Base de datos:** SQLite
+- **Autenticación:** JWT (JSON Web Tokens)
+- **Versión Node.js:** 18.x o superior
+- **Dependencias principales:**
+  - `express` v4.18+
+  - `socket.io` v4.5+ (WebSockets)
+  - `sqlite3` (Base de datos)
+  - `jsonwebtoken` (JWT)
+  - `bcryptjs` (Hashing de contraseñas)
+  - `multer` (Subida de archivos)
+
+---
+
+## 🏗️ Arquitectura de la Aplicación
+
+### Descripción General
+
+FINDME utiliza una arquitectura **cliente-servidor** con comunicación en tiempo real:
+
+```
+┌─────────────────────────────────────────┐
+│          FRONTEND (React Native)        │
+│  ┌─────────────────────────────────┐   │
+│  │  Screens (UI Components)        │   │
+│  │  - LoginScreen                  │   │
+│  │  - RegisterScreen               │   │
+│  │  - OnboardingScreen             │   │
+│  │  - DiscoverScreen (Swipe)       │   │
+│  │  - ChatScreen                   │   │
+│  │  - ProfileScreen                │   │
+│  │  - EditProfileScreen            │   │
+│  │  - MessagesScreen               │   │
+│  │  - LikesScreen                  │   │
+│  └─────────────────────────────────┘   │
+│            ↓ HTTP + WebSocket           │
+└────────────────┬────────────────────────┘
+                 │
+     ┌───────────┴───────────┐
+     ↓                       ↓
+  [REST API]          [WebSocket]
+   Port 3001           Port 3001
+     │                       │
+┌────┴───────────────────────┴────────┐
+│      BACKEND (Node.js Express)      │
+│  ┌───────────────────────────────┐  │
+│  │  Routes:                      │  │
+│  │  - /auth (login, register)    │  │
+│  │  - /users (perfiles)          │  │
+│  │  - /discover (recomendaciones)│  │
+│  │  - /likes (sistema de likes)  │  │
+│  │  - /messages (chat)           │  │
+│  │  - /upload (archivos)         │  │
+│  └───────────────────────────────┘  │
+│  ┌───────────────────────────────┐  │
+│  │  WebSocket Events:            │  │
+│  │  - send_message              │  │
+│  │  - typing_indicator          │  │
+│  │  - user_online/offline       │  │
+│  └───────────────────────────────┘  │
+└────────────┬────────────────────────┘
+             │
+      ┌──────┴──────┐
+      ↓             ↓
+  [SQLite DB]   [Uploads]
+  - users.db    - /uploads
+```
+
+### Flujo de Autenticación
+
+1. **Registro:** Usuario se registra con email @fesc.edu.co → JWT y Refresh Token
+2. **Login:** Valida credenciales → Retorna JWT (corta duración)
+3. **Refresh:** JWT expirado → Usa Refresh Token para obtener nuevo JWT
+4. **Protección:** Cada request incluye `Authorization: Bearer <JWT>`
+
+---
+
+## 📱 Especificaciones Funcionales
+
+### Features Implementadas
+
+| Feature | Estado | Descripción |
+|---|---|---|
+| **Autenticación** | ✅ | Registro con correo @fesc.edu.co + Login con JWT |
+| **Refresh Token** | ✅ | Auto-renovación de sesión |
+| **Onboarding** | ✅ | Fotos, bio, carrera e intereses del usuario |
+| **Descubrimiento** | ✅ | Algoritmo de compatibilidad con swipe |
+| **Gestos Swipe** | ✅ | Like ❤️ / Pass ❌ con animaciones |
+| **Sistema de Likes** | ✅ | Ver quién te ha hecho like |
+| **Matches Mutuos** | ✅ | Modal animado cuando ambos se dan like |
+| **Chat en Tiempo Real** | ✅ | WebSocket bidireccional (Socket.io) |
+| **Typing Indicator** | ✅ | "Escribiendo..." en tiempo real |
+| **Read Receipts** | ✅ | Marcar mensajes como leídos |
+| **Subida de Fotos** | ✅ | Perfil y galería (multer) |
+| **Edición de Perfil** | ✅ | Cambiar foto, bio, carrera |
+| **Filtros Descubrimiento** | ✅ | Por carrera, género, edad |
+| **Bloquear Usuarios** | ✅ | Evitar ver perfiles específicos |
+| **Reportar Usuarios** | ✅ | Reportar abuso |
+| **Estado Online/Offline** | ✅ | Indicador en tiempo real |
+| **Notificaciones Push** | ❌ | No implementado |
+| **Verificación Email** | ❌ | Solo valida dominio @fesc.edu.co |
+
+---
+
+## 🚀 Instrucciones de Instalación y Ejecución
+
+### Prerequisitos
+
+```
+- Node.js 18+
+- npm o yarn
+- Expo Go (en el celular)
+- Git
+```
+
+### 1. Clonar Repositorio
+
+```bash
+git clone <tu-repo>
+cd findme
+```
+
+### 2. Instalar Backend
 
 ```bash
 cd backend
 npm install
+```
+
+**Crear archivo `.env`:**
+
+```env
+PORT=3001
+JWT_SECRET=tu_clave_secreta_muy_larga_y_segura_123456
+JWT_REFRESH_SECRET=otra_clave_refresh_secreta_789012
+NODE_ENV=development
+```
+
+**Iniciar Backend:**
+
+```bash
 npm run dev
 ```
 
-Corre en: `http://localhost:3001`
+Backend corre en: `http://localhost:3001`
 
-### 2. Configurar IP para el celular
+### 3. Configurar IP para Dispositivo Móvil
 
-Para que tu celular se conecte al backend desde la misma red WiFi:
+Abre `frontend/src/config.ts` y reemplaza `localhost` con tu **IP local**:
 
-1. Abre `frontend/src/config.ts`
-2. Reemplaza `localhost` con la **IP local de tu PC** (ej: `192.168.1.100`)
+```bash
+# En Windows: abre CMD y escribe:
+ipconfig
 
-```ts
+# Busca "Dirección IPv4" (ej: 192.168.1.100)
+```
+
+**Actualiza `frontend/src/config.ts`:**
+
+```typescript
 export const API_URL = 'http://192.168.1.100:3001';
 export const SOCKET_URL = 'http://192.168.1.100:3001';
 ```
 
-Para encontrar tu IP en Windows: abre CMD y escribe `ipconfig` → busca "Dirección IPv4"
-
-### 3. Frontend (App móvil)
+### 4. Instalar Frontend
 
 ```bash
 cd frontend
 npm install
+```
+
+**Iniciar App:**
+
+```bash
 npx expo start
 ```
 
-Escanea el código QR con **Expo Go** en tu celular.
+**En tu celular:**
+1. Descarga **Expo Go** (App Store o Google Play)
+2. Escanea el código QR que aparece en la terminal
+3. ¡La app se cargará automáticamente!
 
----
+### 5. Deployment en Producción
 
-## ☁️ Deployment en Producción
+#### Backend → Render.com
 
-### Backend → Render.com (GRATIS, soporta WebSockets)
-
-> ⚠️ **NO uses Vercel para el backend** — Vercel es serverless y no soporta WebSockets persistentes (Socket.io).
+⚠️ **NO uses Vercel** — no soporta WebSockets persistentes.
 
 1. Crea cuenta en [render.com](https://render.com)
-2. "New Web Service" → conecta tu repositorio de GitHub
-3. Selecciona la carpeta `backend/`
+2. "New Web Service" → Conecta GitHub
+3. Selecciona carpeta: `/backend`
 4. Build Command: `npm install`
 5. Start Command: `npm start`
-6. Agrega variables de entorno:
-   - `JWT_SECRET` = (clave secreta larga y aleatoria)
+6. Variables de entorno:
+   - `JWT_SECRET` = (clave secreta larga)
    - `NODE_ENV` = `production`
-7. Render te dará una URL tipo: `https://findme-backend.onrender.com`
 
-### App → Expo (distribución)
+Render te dará: `https://findme-backend.onrender.com`
 
-Una vez el backend esté desplegado:
-1. Actualiza `frontend/src/config.ts` con la URL de Render
-2. Para distribuir la app: `npx expo build:android` o usa EAS Build
+#### App → EAS Build
 
----
-
-## 🔧 Variables de Entorno (Backend)
-
-Crea un archivo `backend/.env` (ya existe uno por defecto):
-
-```env
-PORT=3001
-JWT_SECRET=tu_clave_secreta_muy_larga_y_segura
-JWT_REFRESH_SECRET=tu_otra_clave_secreta_refresh
-NODE_ENV=development
+```bash
+cd frontend
+npx eas build --platform android
+# o para iOS:
+npx eas build --platform ios
 ```
 
 ---
 
-## 📱 Funcionalidades
+## 📸 Capturas de Pantalla
 
-| Feature | Estado |
-|---|---|
-| Registro con correo @fesc.edu.co | ✅ |
-| Login + JWT con refresh automático | ✅ |
-| Onboarding (foto + bio + intereses) | ✅ |
-| Descubrimiento de perfiles (swipe) | ✅ |
-| Gestos de swipe + botones ❌/❤️ | ✅ |
-| Sistema de Likes y Matches | ✅ |
-| Modal de Match animado | ✅ |
-| Chat en tiempo real (WebSocket) | ✅ |
-| Typing indicator + Read receipts | ✅ |
-| Subida de fotos de perfil y galería | ✅ |
-| Perfil editable (foto, bio, carrera) | ✅ |
-| Filtros de descubrimiento | ✅ |
-| Bloquear / Reportar usuarios | ✅ |
-| Estado online/offline en tiempo real | ✅ |
-| Notificaciones push | ❌ (omitido) |
-| Verificación de correo | ❌ (omitido, solo valida dominio) |
+Aquí van las capturas de pantalla de todas las pantallas funcionando:
+
+### Pantalla de Login
+![Login Screen](URL_AQUI)
+
+### Pantalla de Registro
+![Register Screen](URL_AQUI)
+
+### Pantalla de Onboarding
+![Onboarding Screen](URL_AQUI)
+
+### Pantalla de Descubrimiento (Swipe)
+![Discover Screen](URL_AQUI)
+
+### Pantalla de Chat
+![Chat Screen](URL_AQUI)
+
+### Pantalla de Perfil
+![Profile Screen](URL_AQUI)
+
+### Pantalla de Edición de Perfil
+![Edit Profile Screen](URL_AQUI)
+
+### Pantalla de Mensajes
+![Messages Screen](URL_AQUI)
+
+### Pantalla de Likes
+![Likes Screen](URL_AQUI)
+
+### Modal de Match
+![Match Modal](URL_AQUI)
+
+### Pantalla de Splash
+![Splash Screen](URL_AQUI)
 
 ---
 
-## 🎨 Diseño
+## 🔌 Endpoints de Servicios Web Consumidos
 
-- **Fondo**: `#080808` (negro puro)
-- **Acento**: `#FF2D5B` → `#FF6B35` (gradiente rosa-naranja)
-- **Tipografía**: Inter
-- **Estilo**: Dark mode, glassmorphism, animaciones fluidas
+### Autenticación
+
+```
+POST /auth/register
+  Body: { email, password, fullName, carrera }
+  Response: { user, accessToken, refreshToken }
+
+POST /auth/login
+  Body: { email, password }
+  Response: { user, accessToken, refreshToken }
+
+POST /auth/refresh
+  Body: { refreshToken }
+  Response: { accessToken }
+
+POST /auth/logout
+  Headers: { Authorization: Bearer <token> }
+  Response: { message: "success" }
+```
+
+### Usuarios y Perfiles
+
+```
+GET /users/profile
+  Headers: { Authorization: Bearer <token> }
+  Response: { user }
+
+PUT /users/profile
+  Headers: { Authorization: Bearer <token> }
+  Body: { fullName, bio, carrera, interests, age, gender }
+  Response: { user }
+
+POST /users/upload-photo
+  Headers: { Authorization: Bearer <token> }
+  Body: FormData { photo }
+  Response: { photoUrl }
+
+GET /users/:userId
+  Headers: { Authorization: Bearer <token> }
+  Response: { user }
+
+POST /users/block/:userId
+  Headers: { Authorization: Bearer <token> }
+  Response: { message: "success" }
+
+POST /users/report/:userId
+  Headers: { Authorization: Bearer <token> }
+  Body: { reason }
+  Response: { message: "success" }
+```
+
+### Descubrimiento
+
+```
+GET /discover/profiles
+  Headers: { Authorization: Bearer <token> }
+  Query: { gender, carrera, ageMin, ageMax }
+  Response: [{ id, name, photo, bio, carrera, interests }...]
+
+GET /discover/recommendations
+  Headers: { Authorization: Bearer <token> }
+  Response: [{ compatibilidad, user }...]
+```
+
+### Likes y Matches
+
+```
+POST /likes/like/:userId
+  Headers: { Authorization: Bearer <token> }
+  Response: { match: true/false, matchedUser }
+
+POST /likes/pass/:userId
+  Headers: { Authorization: Bearer <token> }
+  Response: { message: "success" }
+
+GET /likes/incoming
+  Headers: { Authorization: Bearer <token> }
+  Response: [{ id, name, photo, likedAt }...]
+
+GET /likes/matches
+  Headers: { Authorization: Bearer <token> }
+  Response: [{ id, name, photo, matchedAt }...]
+```
+
+### Mensajes
+
+```
+GET /messages/conversations
+  Headers: { Authorization: Bearer <token> }
+  Response: [{ userId, lastMessage, timestamp }...]
+
+GET /messages/:userId
+  Headers: { Authorization: Bearer <token> }
+  Query: { limit, offset }
+  Response: [{ id, text, sender, timestamp, read }...]
+
+POST /messages
+  Headers: { Authorization: Bearer <token> }
+  Body: { recipientId, text }
+  Response: { message }
+
+PUT /messages/:messageId/read
+  Headers: { Authorization: Bearer <token> }
+  Response: { message: "success" }
+```
+
+### WebSocket Events (Socket.io)
+
+```
+emit: 'send_message', { recipientId, text }
+on: 'receive_message', { senderId, text, timestamp }
+
+emit: 'typing', { recipientId }
+on: 'user_typing', { userId }
+
+emit: 'stop_typing', { recipientId }
+on: 'user_stopped_typing', { userId }
+
+on: 'user_online', { userId }
+on: 'user_offline', { userId }
+
+on: 'new_like', { userId, name }
+on: 'new_match', { userId, name }
+```
 
 ---
 
-## 📋 Requisitos
+## 🎨 Diseño y Estilo
 
-- Node.js 18+
-- Expo Go en el celular (iOS o Android)
-- npm o yarn
-=======
-# FESC Connect
+- **Fondo Principal:** `#080808` (Negro puro)
+- **Color de Acento:** Gradiente `#FF2D5B` → `#FF6B35` (Rosa a Naranja)
+- **Tipografía:** Inter
+- **Paleta:** Dark mode con glassmorphism
+- **Animaciones:** Fluidas con React Native Animated API
 
-Una red social universitaria para estudiantes de la Universidad FESC.
+---
 
-## ¿Qué es FESC Connect?
+## 📋 Requisitos del Sistema
 
-FESC Connect es una aplicación móvil diseñada para que los estudiantes de la FESC puedan conocerse, hacer amigos, trabajar en grupo y crear conexiones significativas dentro de la comunidad universitaria.
+- **Node.js:** 18.x o superior
+- **npm:** 9.x o superior (o yarn 3.x+)
+- **Expo Go:** Versión reciente (disponible en App Store / Google Play)
+- **Espacio en disco:** 500MB mínimo
+- **Conexión a internet:** Requerida para desarrollo y deployment
 
-## ¿Qué hace?
+---
 
-La aplicación permite a los estudiantes:
+## 🎯 Conclusiones y Aprendizajes
 
-- **Registrarse** usando su correo institucional (@fesc.edu.co) para garantizar que solo estudiantes verificados accedan
-- **Crear un perfil** con fotos, información académica e intereses personales
-- **Descubrir otros perfiles** mediante un motor de recomendación que sugiere perfiles compatibles
-- **Hacer conexiones** dándole "like" a perfiles que les interesen
-- **Chatear en tiempo real** con otros estudiantes sin necesidad de un match mutuo primero
-- **Desbloquear conexiones destacadas** cuando ambos usuarios se dan like mutuamente
-- **Recibir notificaciones** push cuando tienen nuevos mensajes o interacciones
-- **Reportar y bloquear** usuarios si es necesario
+### Lecciones Aprendidas
 
-## Diferenciador clave
+[Agrega aquí manualmente las conclusiones, desafíos enfrentados, y aprendizajes del proyecto]
 
-A diferencia de aplicaciones como Tinder, **no necesitas esperar un match mutuo para escribirle a alguien**. Puedes iniciar una conversación directamente con cualquier usuario. Los matches mutuos solo desbloquean una categoría especial de conexión más destacada.
+### Desafíos
 
-## Características principales
+[Documentar los principales desafíos técnicos que enfrentaron]
 
-- ✨ Descubrimiento inteligente con algoritmo de compatibilidad
-- 💬 Chat en tiempo real
-- 📸 Perfiles con galerías de fotos
-- 🎯 Intereses académicos y personales
-- 🔒 Seguridad con verificación institucional
-- 🌙 Modo oscuro por defecto
-- 🔔 Notificaciones push
->>>>>>> 3fdb02ff4e9d6c9ea718ecef32cbebfe61b09144
+### Mejoras Futuras
+
+[Listar posibles mejoras y features adicionales para futuras versiones]
+
+---
+
+## 📄 Licencia
+
+Este proyecto es propiedad de la Universidad FESC. Uso exclusivo educativo.
+
+---
+
+## 📧 Contacto
+
+Para preguntas o soporte, contacta al equipo de desarrollo.
