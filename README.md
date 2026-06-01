@@ -248,37 +248,47 @@ npx eas build --platform ios
 Aquí van las capturas de pantalla de todas las pantallas funcionando:
 
 ### Pantalla de Login
-![Login Screen](URL_AQUI)
+![Login Screen](<img width="692" height="1308" alt="image" src="https://github.com/user-attachments/assets/5c614a67-d914-4041-880a-d63a4475dee4" />
+)
 
 ### Pantalla de Registro
-![Register Screen](URL_AQUI)
+![Register Screen](<img width="714" height="1309" alt="image" src="https://github.com/user-attachments/assets/00f0f1b0-6e1a-47cc-8527-b016bd19da1b" />
+)
 
 ### Pantalla de Onboarding
-![Onboarding Screen](URL_AQUI)
+![Onboarding Screen](<img width="720" height="1142" alt="image" src="https://github.com/user-attachments/assets/8170989e-0cd3-4c0a-a091-c96cf58dd508" /> <img width="720" height="1114" alt="image" src="https://github.com/user-attachments/assets/62aa5572-e00d-494c-be79-5cf36226b954" /> <img width="720" height="1374" alt="image" src="https://github.com/user-attachments/assets/13e14ca5-a92b-4010-a8e8-22e90b08f3f9" /> <img width="720" height="1197" alt="image" src="https://github.com/user-attachments/assets/ac739689-cc3e-4010-9fe0-ca76d5dd06a9" />
+)
 
 ### Pantalla de Descubrimiento (Swipe)
 ![Discover Screen](URL_AQUI)
 
 ### Pantalla de Chat
-![Chat Screen](URL_AQUI)
+![Chat Screen](<img width="720" height="1339" alt="image" src="https://github.com/user-attachments/assets/24f22938-b149-444f-b9dc-fb2edcc78878" />
+)
 
 ### Pantalla de Perfil
-![Profile Screen](URL_AQUI)
+![Profile Screen](<img width="720" height="1336" alt="image" src="https://github.com/user-attachments/assets/2316eefe-7289-473e-9a71-fd3fc6f2be64" />
+)
 
 ### Pantalla de Edición de Perfil
-![Edit Profile Screen](URL_AQUI)
+![Edit Profile Screen](<img width="720" height="1279" alt="image" src="https://github.com/user-attachments/assets/9fa6c3f8-7fa9-40b4-8c5d-67f71bf69da1" /> <img width="720" height="1290" alt="image" src="https://github.com/user-attachments/assets/31d6cf96-0e5c-4dba-bae3-e65fed973e11" />
+
+)
 
 ### Pantalla de Mensajes
-![Messages Screen](URL_AQUI)
+![Messages Screen](<img width="710" height="1346" alt="image" src="https://github.com/user-attachments/assets/9348ae60-229b-4c58-a57d-63f62edc5f0e" />
+)
 
 ### Pantalla de Likes
-![Likes Screen](URL_AQUI)
+![Likes Screen](<img width="720" height="1249" alt="image" src="https://github.com/user-attachments/assets/32a80020-89f3-4ba5-8004-ca41e3ac94fb" /> <img width="720" height="1373" alt="image" src="https://github.com/user-attachments/assets/15f12ef7-b641-4c0e-b197-28148e9906f0" />
+
+)
 
 ### Modal de Match
-![Match Modal](URL_AQUI)
+![Match Modal](<img width="720" height="1210" alt="image" src="https://github.com/user-attachments/assets/fdb7e46d-b740-4e08-b503-9d563e678d99" /> <img width="653" height="960" alt="image" src="https://github.com/user-attachments/assets/9ccb6457-0e25-4d33-b086-334662a411aa" />
 
-### Pantalla de Splash
-![Splash Screen](URL_AQUI)
+)
+
 
 ---
 
