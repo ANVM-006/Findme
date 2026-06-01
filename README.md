@@ -256,7 +256,10 @@ Aquí van las capturas de pantalla de todas las pantallas funcionando:
 )
 
 ### Pantalla de Onboarding
-![Onboarding Screen](<img width="720" height="1142" alt="image" src="https://github.com/user-attachments/assets/8170989e-0cd3-4c0a-a091-c96cf58dd508" /> <img width="720" height="1114" alt="image" src="https://github.com/user-attachments/assets/62aa5572-e00d-494c-be79-5cf36226b954" /> <img width="720" height="1374" alt="image" src="https://github.com/user-attachments/assets/13e14ca5-a92b-4010-a8e8-22e90b08f3f9" /> <img width="720" height="1197" alt="image" src="https://github.com/user-attachments/assets/ac739689-cc3e-4010-9fe0-ca76d5dd06a9" />
+![Onboarding Screen](<img width="720" height="1142" alt="image" src="https://github.com/user-attachments/assets/8170989e-0cd3-4c0a-a091-c96cf58dd508" /> 
+<img width="720" height="1114" alt="image" src="https://github.com/user-attachments/assets/62aa5572-e00d-494c-be79-5cf36226b954" /> 
+<img width="720" height="1374" alt="image" src="https://github.com/user-attachments/assets/13e14ca5-a92b-4010-a8e8-22e90b08f3f9" /> 
+<img width="720" height="1197" alt="image" src="https://github.com/user-attachments/assets/ac739689-cc3e-4010-9fe0-ca76d5dd06a9" />
 )
 
 ### Pantalla de Descubrimiento (Swipe)
