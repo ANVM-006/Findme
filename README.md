@@ -10,10 +10,9 @@ App móvil estilo Tinder para estudiantes de la Universidad FESC, diseñada para
 
 | Nombre Completo | Código Estudiante |
 |---|---|
-| [Nombre 1] | [Código] |
-| [Nombre 2] | [Código] |
-| [Nombre 3] | [Código] |
-| [Nombre 4] | [Código] |
+| [Angel Nadin Vega Martinez] | [1028480796] |
+| [Jann Pierre Ortiz Zambrano] | [1094045411] |
+
 
 ---
 
