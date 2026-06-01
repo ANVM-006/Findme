@@ -248,50 +248,39 @@ npx eas build --platform ios
 Aquí van las capturas de pantalla de todas las pantallas funcionando:
 
 ### Pantalla de Login
-![Login Screen](<img width="692" height="1308" alt="image" src="https://github.com/user-attachments/assets/5c614a67-d914-4041-880a-d63a4475dee4" />
-)
+<img width="692" height="1308" alt="image" src="https://github.com/user-attachments/assets/6db44852-ad39-452e-af9a-dbd7ee8e28ee" />
 
 ### Pantalla de Registro
-![Register Screen](<img width="714" height="1309" alt="image" src="https://github.com/user-attachments/assets/00f0f1b0-6e1a-47cc-8527-b016bd19da1b" />
-)
+<img width="714" height="1309" alt="image" src="https://github.com/user-attachments/assets/9418e02d-e242-4f03-9dfc-51d6c578ad5f" />
 
 ### Pantalla de Onboarding
-![Onboarding Screen](<img width="720" height="1142" alt="image" src="https://github.com/user-attachments/assets/8170989e-0cd3-4c0a-a091-c96cf58dd508" /> 
+<img width="720" height="1142" alt="image" src="https://github.com/user-attachments/assets/8170989e-0cd3-4c0a-a091-c96cf58dd508" /> 
 <img width="720" height="1114" alt="image" src="https://github.com/user-attachments/assets/62aa5572-e00d-494c-be79-5cf36226b954" /> 
 <img width="720" height="1374" alt="image" src="https://github.com/user-attachments/assets/13e14ca5-a92b-4010-a8e8-22e90b08f3f9" /> 
 <img width="720" height="1197" alt="image" src="https://github.com/user-attachments/assets/ac739689-cc3e-4010-9fe0-ca76d5dd06a9" />
-)
+
 
 ### Pantalla de Descubrimiento (Swipe)
-![Discover Screen](URL_AQUI)
+<img width="720" height="1339" alt="image" src="https://github.com/user-attachments/assets/90b08d18-2777-4a57-bc0d-38268d704e17" />
 
 ### Pantalla de Chat
-![Chat Screen](<img width="720" height="1339" alt="image" src="https://github.com/user-attachments/assets/24f22938-b149-444f-b9dc-fb2edcc78878" />
-)
+<img width="720" height="1339" alt="image" src="https://github.com/user-attachments/assets/24f22938-b149-444f-b9dc-fb2edcc78878" />
 
 ### Pantalla de Perfil
-![Profile Screen](<img width="720" height="1336" alt="image" src="https://github.com/user-attachments/assets/2316eefe-7289-473e-9a71-fd3fc6f2be64" />
-)
+<img width="720" height="1336" alt="image" src="https://github.com/user-attachments/assets/2316eefe-7289-473e-9a71-fd3fc6f2be64" />
 
 ### Pantalla de Edición de Perfil
-![Edit Profile Screen](<img width="720" height="1279" alt="image" src="https://github.com/user-attachments/assets/9fa6c3f8-7fa9-40b4-8c5d-67f71bf69da1" /> <img width="720" height="1290" alt="image" src="https://github.com/user-attachments/assets/31d6cf96-0e5c-4dba-bae3-e65fed973e11" />
-
-)
+<img width="720" height="1279" alt="image" src="https://github.com/user-attachments/assets/9fa6c3f8-7fa9-40b4-8c5d-67f71bf69da1" /> 
+<img width="720" height="1290" alt="image" src="https://github.com/user-attachments/assets/31d6cf96-0e5c-4dba-bae3-e65fed973e11" />
 
 ### Pantalla de Mensajes
-![Messages Screen](<img width="710" height="1346" alt="image" src="https://github.com/user-attachments/assets/9348ae60-229b-4c58-a57d-63f62edc5f0e" />
-)
+<img width="710" height="1346" alt="image" src="https://github.com/user-attachments/assets/9348ae60-229b-4c58-a57d-63f62edc5f0e" />
 
 ### Pantalla de Likes
-![Likes Screen](<img width="720" height="1249" alt="image" src="https://github.com/user-attachments/assets/32a80020-89f3-4ba5-8004-ca41e3ac94fb" /> <img width="720" height="1373" alt="image" src="https://github.com/user-attachments/assets/15f12ef7-b641-4c0e-b197-28148e9906f0" />
-
-)
+<img width="720" height="1249" alt="image" src="https://github.com/user-attachments/assets/32a80020-89f3-4ba5-8004-ca41e3ac94fb" /> <img width="720" height="1373" alt="image" src="https://github.com/user-attachments/assets/15f12ef7-b641-4c0e-b197-28148e9906f0" />
 
 ### Modal de Match
-![Match Modal](<img width="720" height="1210" alt="image" src="https://github.com/user-attachments/assets/fdb7e46d-b740-4e08-b503-9d563e678d99" /> <img width="653" height="960" alt="image" src="https://github.com/user-attachments/assets/9ccb6457-0e25-4d33-b086-334662a411aa" />
-
-)
-
+<img width="720" height="1210" alt="image" src="https://github.com/user-attachments/assets/fdb7e46d-b740-4e08-b503-9d563e678d99" /> <img width="653" height="960" alt="image" src="https://github.com/user-attachments/assets/9ccb6457-0e25-4d33-b086-334662a411aa" />
 
 ---
 
